@@ -150,8 +150,8 @@ function tab(options) {
           if (err) {
             throw(err)
           }
+          self.startWatch()
         })
-        self.startWatch()
         $(tab).children(".title").html(path.basename(file))
       })
     }
