@@ -21,7 +21,10 @@
     },
     "win": {
       "target": "portable"
-    }
+    },
+    "extraResources": [
+      "lang"
+    ]
   },
   "devDependencies": {
     "electron": "^3.0.10",
