@@ -1,63 +1,68 @@
-const fontList = require('font-list')
+const fontList = require("font-list")
 const $ = require("jquery")
 const _ = require("lodash")
 const Sortable = require("sortablejs")
 const { remote } = require("electron")
-const fs = require('fs')
+const fs = require("fs")
 const chokidar = require("chokidar")
-const path = require('path')
+const path = require("path")
 const i18next = require("i18next")
 const LngDetector = require("i18next-electron-language-detector")
 const Backend = require("i18next-sync-fs-backend")
 const iconv = require("iconv-lite")
-const AutoDetectDecoderStream = require('autodetect-decoder-stream')
+const AutoDetectDecoderStream = require("autodetect-decoder-stream")
 
 //using different pathes on different os
+var config_folder
+var config_path
 if (process.platform == "win32") {
-  var config_path = process.env.APPDATA + "/illud/config.json"
-  var config_folder = process.env.APPDATA + "/illud/"
+  config_path = process.env.APPDATA + "/illud/config.json"
+  config_folder = process.env.APPDATA + "/illud/"
 } else if (process.platform == "darwin" || process.platform == "linux") {
-  var config_path = process.env.HOME + "/illud/config.json"
-  var config_folder = process.env.HOME + "/illud/"
+  config_path = process.env.HOME + "/illud/config.json"
+  config_folder = process.env.HOME + "/illud/"
 }
 
 function loadSettings() {
   //checking exist of file
   if (!fs.existsSync(config_path)) {
     var options = {
-      font: "'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace",
+      // eslint-disable-next-line quotes
+      font: `'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace`,
       font_ligatures: true,
       font_size: "14px"
     }
 
     fs.mkdir(config_folder, { recursive: true }, (err) => {
-      if (err) throw err;
+      if (err) throw err
     })
 
     fs.writeFile(config_path, JSON.stringify(options), function(err) {
       if (err) throw err
-      console.log("Config file not found, creating...");
+      console.log("Config file not found, creating...")
     })
   }
 
   //applying settings
-  fs.readFile(config_path, 'utf8', function (err,data) {
+  fs.readFile(config_path, "utf8", function (err,data) {
     if (err) throw err
-    var data = JSON.parse(data)
+    data = JSON.parse(data)
 
     $("#editors").css({
       "font-family": data.font,
       "font-weightfont-variant-ligatures": data.font_ligatures,
       "font-size": data.font_size
     })
-  });
+  })
 }
 
 var tab_list = []
-var current_tab
 var win = remote.getCurrentWindow()
+var watchdog = chokidar.watch()
+
 //tab function
 function tab(options) {
+  // eslint-disable-next-line no-undef
   var EditSession = ace.EditSession
   var session = new EditSession("")
 
@@ -90,8 +95,6 @@ function tab(options) {
     self.active()
   })
 
-  var watchdog
-
   var file
   var encoding
 
@@ -100,57 +103,61 @@ function tab(options) {
     remote.dialog.showOpenDialog({
       title: i18next.t("dialogs.openfile.title")
     }, function(filePaths) {
-      /*fs.readFile(filePaths[0], 'utf-8', (err, data) => {
+      /*fs.readFile(filePaths[0], "utf-8", (err, data) => {
         if(err){
-            alert("С файлом что-то не так:" + err.message);
+            alert("С файлом что-то не так:" + err.message)
             return
         }
         session.setValue(data)
-        watchdog = chokidar.watch(filePaths[0]).on('change', (event, path) => {
-          console.log(event, path);
+        watchdog = chokidar.watch(filePaths[0]).on("change", (event, path) => {
+          console.log(event, path)
         })
         $(tab).children(".title").html(path.basename(filePaths[0]))
       })*/
       file = filePaths[0]
 
       //detecting encoding and setValue
-      var stream = fs.createReadStream(file).pipe(new AutoDetectDecoderStream({ defaultEncoding: 'utf-8' }))
-      stream.on('data', function (data) {
+      var stream = fs.createReadStream(file).pipe(new AutoDetectDecoderStream({ defaultEncoding: "utf-8" }))
+      stream.on("data", function (data) {
         session.setValue(data)
         self.startWatch()
         $(tab).children(".title").html(path.basename(file))
         $(".encoding").html(stream._detectedEncoding)
         encoding = stream._detectedEncoding
-        console.log("debug", encoding)
-      }).on('end', function () {
-        console.log('Done reading.')
+        console.log(encoding)
+      }).on("end", function () {
+        console.log("Done reading.")
       })
     })
   }
 
   //save function
   this.save = function() {
-    if (watchdog) {
+    if (file != undefined) {
       //opened file \|
-      watchdog.close()
-      buffer = iconv.encode(session.getValue(), encoding);
+      watchdog.unwatch(file)
+      var buffer = iconv.encode(session.getValue(), encoding)
       fs.writeFile(file, buffer, function (err) {
         if (err) {
           throw(err)
         }
-        self.startWatch()
+        setTimeout(() => {
+          self.startWatch()
+        }, 300)
       })
       //new file \|
     } else {
       encoding = "utf-8"
       remote.dialog.showSaveDialog(win, { title: i18next.t("dialogs.save.title") + " " + options.title }, function(filename) {
         file = filename
-        buffer = iconv.encode(session.getValue(), encoding);
+        buffer = iconv.encode(session.getValue(), encoding)
         fs.writeFile(file, buffer, function (err) {
           if (err) {
             throw(err)
           }
-          self.startWatch()
+          setTimeout(() => {
+            self.startWatch()
+          }, 300)
         })
         $(tab).children(".title").html(path.basename(file))
       })
@@ -158,16 +165,17 @@ function tab(options) {
   }
 
   this.startWatch = function() {
-    watchdog = chokidar.watch(file).on('change', (event, path) => {
+    watchdog.add(file)
+    watchdog.on("change", function() {
       remote.dialog.showMessageBox(win, { type: "warning", title: "illud", message: i18next.t("dialogs.updatedfile.msg"), buttons: [i18next.t("dialogs.updatedfile.keepbtn"), i18next.t("dialogs.updatedfile.replacebtn")] }, function(response) {
         if (response == 0) {
           return false
         } else if (response == 1) {
-          var stream = fs.createReadStream(file).pipe(new AutoDetectDecoderStream({ defaultEncoding: 'utf-8' }))
-          stream.on('data', function (data) {
+          var stream = fs.createReadStream(file).pipe(new AutoDetectDecoderStream({ defaultEncoding: "utf-8" }))
+          stream.on("data", function (data) {
             session.setValue(data)
-          }).on('end', function () {
-            console.log('Done reading.')
+          }).on("end", function () {
+            console.log("Done reading.")
           })
         }
       })
@@ -185,9 +193,7 @@ function tab(options) {
       } 
     }
     session = null
-    if (watchdog) {
-      watchdog.close()
-    }
+    watchdog.unwatch(file)
     _.remove(tab_list, function(n) {
       return n == self
     })
@@ -197,14 +203,15 @@ function tab(options) {
     $(".tab").removeClass("active")
     $(tab).addClass("active")
     main_editor.setSession(session)
-    current_tab = self
+    // eslint-disable-next-line no-unused-vars
+    var current_tab = self
   }
 
   this.active()
 }
 
-var sortable
 function initEditor() {
+  // eslint-disable-next-line no-undef
   main_editor = ace.edit("editors", {
     mode: "ace/mode/text",
     selectionStyle: "text"
@@ -214,7 +221,7 @@ function initEditor() {
     new tab({title: "Unnamed"})
   })
 
-  sortable = Sortable.create(document.getElementsByClassName('tabs')[0], {
+  Sortable.create(document.getElementsByClassName("tabs")[0], {
     onEnd: function (evt) {
       console.log(evt)
       var evtreverse = (tab_list.length - 1)
@@ -225,43 +232,43 @@ function initEditor() {
     },
   })
 
+  // eslint-disable-next-line no-undef
   var StatusBar = ace.require("ace/ext/statusbar").StatusBar
-  var statusbar = new StatusBar(main_editor, document.getElementsByClassName("status-bar")[0])
+  new StatusBar(main_editor, document.getElementsByClassName("status-bar")[0])
+
+  new tab()
 }
 
+var main_editor
+
 $(document).ready(function() {
-  var main_editor
   //tabs scrolling
-  $('.tabs').bind('mousewheel', function(e){
+  $(".tabs").bind("mousewheel", function(e){
     if(e.originalEvent.wheelDelta < 0) {
       document.getElementsByClassName("tabs")[0].scrollBy(30,0)
     } else {
       document.getElementsByClassName("tabs")[0].scrollBy(-30,0)
     }
-
-    return false;
   })
   fontList.getFonts()
-  .then(fonts => {
-    console.log(fonts)
-  })
-  .catch(err => {
-    console.log(err)
-  })
+    .then(fonts => {
+      console.log(fonts)
+    })
+    .catch(err => {
+      console.log(err)
+    })
 
   i18next.use(LngDetector).use(Backend).init({
-    fallbackLng: 'en',
+    fallbackLng: "en",
     backend: {
-      loadPath: path.join( remote.app.getAppPath(), '../lang/{{lng}}.json' ),
-      addPath: path.join( remote.app.getAppPath(), '../lang/{{lng}}.json' ),
+      loadPath: path.join( remote.app.getAppPath(), "../lang/{{lng}}.json" ),
+      addPath: path.join( remote.app.getAppPath(), "../lang/{{lng}}.json" ),
       jsonIndent: 2
     },
-  },
-  function(err, t) {})
+  })
 
   //menu
 
-  var win = remote.getCurrentWindow()
   initEditor()
   loadSettings()
 })

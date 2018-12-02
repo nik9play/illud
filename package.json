@@ -34,6 +34,7 @@
     "ace-builds": "^1.4.2",
     "autodetect-decoder-stream": "^1.0.0",
     "chokidar": "^2.0.4",
+    "eslint": "^5.9.0",
     "font-list": "^1.1.0",
     "i18next": "^12.1.0",
     "i18next-electron-language-detector": "^0.0.10",
