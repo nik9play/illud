@@ -138,8 +138,8 @@ function tab(options) {
         if (err) {
           throw(err)
         }
+        self.startWatch()
       })
-      self.startWatch()
       //new file \|
     } else {
       encoding = "utf-8"
