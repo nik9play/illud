@@ -1,0 +1,43 @@
+{
+  "name": "illud",
+  "version": "1.0.0",
+  "description": "Tiny text / code editor",
+  "main": "index.js",
+  "author": "nik9",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "build": {
+    "appId": "ru.mw.flexpip",
+    "mac": {
+      "category": "public.app-category.games"
+    },
+    "copyright": "Copyright © 2018 MegaWorld Network",
+    "dmg": {
+      "title": "flexPiP"
+    },
+    "win": {
+      "target": "portable"
+    }
+  },
+  "devDependencies": {
+    "electron": "^3.0.10",
+    "electron-builder": "^20.36.2"
+  },
+  "dependencies": {
+    "ace-builds": "^1.4.2",
+    "autodetect-decoder-stream": "^1.0.0",
+    "chokidar": "^2.0.4",
+    "font-list": "^1.1.0",
+    "i18next": "^12.1.0",
+    "i18next-electron-language-detector": "^0.0.10",
+    "i18next-sync-fs-backend": "^1.1.0",
+    "iconv-lite": "^0.4.24",
+    "jquery": "^3.3.1",
+    "lodash": "^4.17.11",
+    "sortablejs": "^1.7.0"
+  }
+}

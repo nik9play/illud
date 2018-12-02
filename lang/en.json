@@ -1,0 +1,40 @@
+{
+  "menu": {
+    "main": {
+      "about": "About",
+      "version": "Version: ",
+      "quit": "Quit"
+    },
+    "file": {
+      "file": "File",
+      "newfile": "New File",
+      "newwindow": "New Window",
+      "openfile": "Open",
+      "save": "Save",
+      "saveas": "Save as...",
+      "closetab": "Close tab",
+      "closewindow": "Close Window"
+    },
+    "edit": {
+      "edit": "Edit",
+      "undo": "Undo",
+      "redo": "Redo",
+      "cut": "Cut",
+      "copy": "Copy",
+      "paste": "Paste",
+      "find": "Find",
+      "replace": "Replace",
+      "selectall": "Select All"
+    },
+    "dialogs": {
+      "openfile": {
+        "title": "Открыть файл..."
+      },
+      "updatedfile": {
+        "msg": "File has been updated. Replace content?",
+        "replacebtn": "Replace",
+        "keepbtn": "Keep"
+      }
+    }
+  }
+}
