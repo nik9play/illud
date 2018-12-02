@@ -59,6 +59,8 @@ function loadSettings() {
 var tab_list = []
 var win = remote.getCurrentWindow()
 var watchdog = chokidar.watch()
+// eslint-disable-next-line no-unused-vars
+var current_tab
 
 //tab function
 function tab(options) {
@@ -204,7 +206,7 @@ function tab(options) {
     $(tab).addClass("active")
     main_editor.setSession(session)
     // eslint-disable-next-line no-unused-vars
-    var current_tab = self
+    current_tab = self
   }
 
   this.active()
