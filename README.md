@@ -10,4 +10,4 @@ yarn dist
 ```
 
 ## Download
-[https://github.com/nik9play/illud/releases](Releases)
+[Releases](https://github.com/nik9play/illud/releases)
